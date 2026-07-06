@@ -36,7 +36,7 @@ public class Product {
                 : ProductStatus.AVAILABLE;
     }
 
-    private boolean isLowStock(){
+    public boolean isLowStock(){
         return quantity>0 && quantity <= minStockLevel ;
     }
 

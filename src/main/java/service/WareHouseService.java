@@ -23,7 +23,6 @@ public class WareHouseService {
         for (Product p : Products) {
             inventory.put(p.getId(), p);
         }
-
     }
 
     public void addProduct(Product product, User performedBy) {                      // بررسی سطح دسترسی و ذخیره سازی دو مرحله ای هم در دیتا بیس هم در خاقظه
@@ -35,7 +34,7 @@ public class WareHouseService {
 
     }
 
-    public Optional<Product> findProductByCode(String code) {
+    public Optional<Product> findProductByCode (String code) {
         return inventory.values().stream()
                 .filter(p -> p.getCode().equalsIgnoreCase(code))
                 .findFirst();
