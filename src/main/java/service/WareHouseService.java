@@ -1,7 +1,12 @@
 package service;
 
+<<<<<<< HEAD
 import database.connectToDb.ProductGenericRepository;
 import database.connectToDb.TransactionGenericRepository;
+=======
+import database.connectToDb.ProductDao;
+import database.connectToDb.TransactionDao;
+>>>>>>> 8305ad8bda157d2e01bdfdc9b08401173f01d59b
 import model.product.Product;
 import model.role.User;
 import model.transaction.Transaction;
@@ -15,8 +20,13 @@ import java.util.Optional;
 public class WareHouseService {
 
     private final Map<Integer, Product> inventory = new HashMap<>();
+
     private final ProductGenericRepository productDao = new ProductGenericRepository();
     private final TransactionGenericRepository transactionDao = new TransactionGenericRepository();
+
+    private final ProductDao productDao = new ProductDao();
+    private final TransactionDao transactionDao = new TransactionDao();
+
 
     public void loadInventoryFromDatabase() {
         List<Product> Products = productDao.findAll();
