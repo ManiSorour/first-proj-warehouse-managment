@@ -11,55 +11,67 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-import static com.sun.tools.jdeprscan.DeprDB.loadFromFile;
 import static files.FileExporter.GSON;
 
 public class ProductJsonRepository implements ProductRepository{
 
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-    private final String filePath;
-
-    private final Map<Integer, Product> storage = new LinkedHashMap<>();
+    private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private final Map<Integer, Product> storage = new HashMap<>();
+    private String filePath;
 
     public ProductJsonRepository(String filePath) {
         this.filePath = filePath;
         loadFromFile();
-
     }
 
-    private void loadFromFile() {
-        Path path = Path.of(filePath);
-        if (!Files.exists(path)){
+    private void loadFromFile(){
+
+        File file = new File(filePath);
+        if (!file.exists()){
             return;
-
         }
-        try (FileReader Reader = new FileReader(filePath)) {
-            Type listType = new TypeToken<ArrayList<Product>>() {}.getType();
-            List<Product> products = GSON.fromJson(Reader , listType);
-            if (products != null) {
-                for (Product p : products){
-                    storage.put(p.getId() , p);
+        FileReader reader = null;
+
+
+        try {
+            reader = new FileReader(file);
+            Type listType  =new TypeToken<ArrayList<Product>>() {}.getType();
+            List<Product> products = GSON.fromJson(reader , listType);
+            if (products != null){
+                for (Product product : products){
+                    storage.put(product.getId() , product);
                 }
-
             }
+
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            System.err.println("خطا در خواندن فایل JSON: " + e.getMessage());
-
+            System.err.println("خطا در خواندن فایل: " + e.getMessage());
         }
-
-    }
-
-    private void persist(){
-        try(FileWriter writer = new FileWriter(filePath)){
-            GSON.toJson(new ArrayList<>(storage.values()), writer);
-
-        } catch (IOException e) {
-            System.err.println("خطا در نوشتن فایل JSON: " + e.getMessage());
+            finally {
+            if (reader != null){
+                try {
+                    reader.close();
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
         }
     }
+
+
+    private void change(){
+        File file = new File(filePath);
+
+        try(FileWriter writer = new FileWriter(filePath)) {
+            GSON.toJson(new ArrayList<>(storage.values()) , writer);
+        } catch (IOException e) {
+            System.err.println("خطا در نوشتن فایل: " + e.getMessage());
+        }
+    }
+
+
+
+
+
 
 
 
@@ -78,18 +90,19 @@ public class ProductJsonRepository implements ProductRepository{
     @Override
     public void save(Product product) {
         storage.put(product.getId(), product);
-        persist();
+        change();
+
     }
 
     @Override
     public void update(Product product) {
         storage.put(product.getId(), product);
-        persist();
+        change();
     }
 
     @Override
     public void delete(int id) {
         storage.remove(id);
-        persist();
+        change();
     }
 }

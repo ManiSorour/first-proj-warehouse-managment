@@ -16,7 +16,7 @@
 
     <dependencies>
 
-        <!-- کتابخانه Gson برای کار با فایل‌های JSON -->
+
 
         <dependency>
             <groupId>com.google.code.gson</groupId>

@@ -11,7 +11,7 @@ public class AlertService {
     private Thread monitorThread ;
 
 
-    public List<Product> checkLowStock(List<Product> products) {
+    public static List<Product> checkLowStock(List<Product> products) {
         return products.stream()
                 .filter(Product::isLowStock)
                 .collect(Collectors.toList());

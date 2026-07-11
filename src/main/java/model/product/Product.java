@@ -131,4 +131,7 @@ public class Product {
         return "Product{id=" + id + ", name='" + name + "', code='" + code +
                 "', quantity=" + quantity + ", status=" + status + "}";
     }
+
+    public double getTotalValue() {
+    }
 }

@@ -20,6 +20,9 @@ public class ReportData implements Serializable {
         this.totalProductCount = totalProductCount;
     }
 
+    public ReportData(double totalValue, List<String> bestSellers, int size) {
+    }
+
     public String getGeneratedAt() {
         return generatedAt;
     }

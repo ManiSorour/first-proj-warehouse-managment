@@ -6,7 +6,8 @@ import java.util.*;
 
 public class ProductInMemoryRepository implements ProductRepository{
 
-    private final  Map<Integer , Product> storage  = new HashMap<>();
+
+   private final Map<Integer , Product> storage = new HashMap<>();
 
 
     @Override
