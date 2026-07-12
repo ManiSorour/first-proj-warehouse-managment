@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
+import static database.configuration.DataBaseConnection.connection;
 import static model.role.Role.WAREHOUSE_KEEPER;
 
 public class Main {
@@ -21,6 +22,7 @@ public class Main {
     private static AlertService alertService;
     private static User currentUser;
     private static FileExporter fileExporter;
+
 
 
     public static void main(String[] args) {
@@ -269,7 +271,9 @@ public class Main {
             System.out.println("خطا در ذخیره فایل: " + e.getMessage());
         }
 
+
     }
+
 
 
 

@@ -40,7 +40,7 @@ public class Product {
         return quantity>0 && quantity <= minStockLevel ;
     }
 
-    private double totalValue(){
+    public double totalValue(){
         return quantity * purchasePrice ;
     }
 
@@ -133,5 +133,6 @@ public class Product {
     }
 
     public double getTotalValue() {
+        return quantity * purchasePrice;
     }
 }

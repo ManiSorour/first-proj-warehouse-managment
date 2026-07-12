@@ -49,7 +49,7 @@ public class ProductGenericRepository implements GenericRepository<Product> {
             System.err.println("خطا در findAll: " + e.getMessage());
         }
 
-    return null;
+     return products;
 
     }
 
@@ -57,7 +57,7 @@ public class ProductGenericRepository implements GenericRepository<Product> {
     public void save(Product p) {
 
         String sql = "INSERT INTO products (name, code, category, purchase_price, sell_price, quantity, min_stock_level) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ? )";
         try(Connection conn = DataBaseConnection.getConnection() ;
         PreparedStatement stmt = conn.prepareStatement(sql)){
 
@@ -68,6 +68,7 @@ public class ProductGenericRepository implements GenericRepository<Product> {
             stmt.setDouble(5 , p.getSellPrice());
             stmt.setInt(6, p.getQuantity());
             stmt.setInt(7, p.getMinStockLevel());
+
             stmt.executeUpdate();
 
         } catch (SQLException e) {

@@ -4,8 +4,6 @@ package service;
 import database.connectToDb.ProductGenericRepository;
 import database.connectToDb.TransactionGenericRepository;
 
-import database.connectToDb.ProductDao;
-import database.connectToDb.TransactionDao;
 import model.product.Product;
 import model.role.User;
 import model.transaction.Transaction;
