@@ -38,7 +38,7 @@ public class UserGenericRepository implements GenericRepository<User> {
     private User mapRow(ResultSet rs) throws SQLException {
         int id = rs.getInt("id");
         String username = rs.getString("username");
-        String passwordHash = rs.getString("passwordHash");
+        String passwordHash = rs.getString("password_hash");
         Role role = Role.valueOf(rs.getString("role"));
 
         return switch (role){

@@ -21,6 +21,10 @@ public class ReportData implements Serializable {
     }
 
     public ReportData(double totalValue, List<String> bestSellers, int size) {
+        this.generatedAt = java.time.LocalDateTime.now().toString();
+        this.totalInventoryValue = totalValue;
+        this.bestSellingProductNames = bestSellers;
+        this.totalProductCount = size;
     }
 
     public String getGeneratedAt() {

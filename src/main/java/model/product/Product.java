@@ -27,6 +27,15 @@ public class Product {
     }
 
     public Product(int id, String name, String code, String category, double purchasePrice, double sellPrice, int quantity, int minStockLevel) {
+        this.id = id;
+        this.name = name;
+        this.code = code;
+        this.category = category;
+        this.purchasePrice = purchasePrice;
+        this.sellPrice = sellPrice;
+        this.quantity = quantity;
+        this.minStockLevel = minStockLevel;
+        updateStatus();
     }
 
     private void updateStatus() {

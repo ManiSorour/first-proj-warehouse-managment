@@ -19,10 +19,9 @@ public class Main {
         private static final Scanner scanner = new Scanner(System.in);
     private static WareHouseService wareHouseService;
     private static int nextProductId = 1;
-    private static AlertService alertService;
+    private static AlertService alertService = new AlertService();
     private static User currentUser;
-    private static FileExporter fileExporter;
-
+    private static FileExporter fileExporter = new FileExporter();
 
 
     public static void main(String[] args) {
@@ -31,6 +30,7 @@ public class Main {
         ProductRepository repository = ChooseRepository();
          wareHouseService = new WareHouseService(repository);
 
+
         if (wareHouseService.getAllProducts().isEmpty()){
             initialProductSeed();
         }else {
@@ -38,7 +38,7 @@ public class Main {
             System.out.println("✅ " + wareHouseService.getAllProducts().size() + " کالای قبلی از حافظه پایدار بارگذاری شد.\n");
 
 
-            alertService.startBackgroundMonitoring(wareHouseService, Long.valueOf(15000));
+            alertService.startBackgroundMonitoring(wareHouseService, Long.valueOf(50000));
 
         if (!login()){
                 System.out.println("ورود ناموفق. برنامه بسته می‌شود.");

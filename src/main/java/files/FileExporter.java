@@ -19,12 +19,11 @@ public class FileExporter {
 
         }
 //serialize
-    public void exportToJson(String path, ReportData data)throws IOException {
-        try (Writer writer = new FileWriter(path)){
-            GSON.toJson(data);
-        }
-
+public void exportToJson(String path, ReportData data) throws IOException {
+    try (Writer writer = new FileWriter(path)) {
+        GSON.toJson(data, writer);
     }
+}
 //deserilize
     public ReportData importFromJson(String path) throws IOException {
         try (Reader reader = new FileReader(path)) {
