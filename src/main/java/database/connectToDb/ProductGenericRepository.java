@@ -16,11 +16,11 @@ public class ProductGenericRepository implements GenericRepository<Product> {
     public Product findById(int id) {
         String sql = "SELECT * FROM products WHERE id = ?";
 
-        try (Connection conn = DataBaseConnection.getConnection() ;
+        try (Connection conn = DataBaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()){
+                if (rs.next()) {
                     return mapRow(rs);
                 }
             }
@@ -29,7 +29,6 @@ public class ProductGenericRepository implements GenericRepository<Product> {
         }
         return null;
     }
-
 
 
     @Override
@@ -49,7 +48,7 @@ public class ProductGenericRepository implements GenericRepository<Product> {
             System.err.println("خطا در findAll: " + e.getMessage());
         }
 
-     return products;
+        return products;
 
     }
 
@@ -58,14 +57,14 @@ public class ProductGenericRepository implements GenericRepository<Product> {
 
         String sql = "INSERT INTO products (name, code, category, purchase_price, sell_price, quantity, min_stock_level) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ? )";
-        try(Connection conn = DataBaseConnection.getConnection() ;
-        PreparedStatement stmt = conn.prepareStatement(sql)){
+        try (Connection conn = DataBaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1,p.getName());
-            stmt.setString(2 , p.getCode());
-            stmt.setString(3 , p.getCategory());
-            stmt.setDouble(4 , p.getPurchasePrice());
-            stmt.setDouble(5 , p.getSellPrice());
+            stmt.setString(1, p.getName());
+            stmt.setString(2, p.getCode());
+            stmt.setString(3, p.getCategory());
+            stmt.setDouble(4, p.getPurchasePrice());
+            stmt.setDouble(5, p.getSellPrice());
             stmt.setInt(6, p.getQuantity());
             stmt.setInt(7, p.getMinStockLevel());
 
@@ -84,7 +83,7 @@ public class ProductGenericRepository implements GenericRepository<Product> {
 
 
         try (Connection conn = DataBaseConnection.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql)){
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, p.getName());
             stmt.setString(2, p.getCode());
@@ -97,26 +96,44 @@ public class ProductGenericRepository implements GenericRepository<Product> {
             stmt.executeUpdate();
 
         } catch (SQLException e) {
-            System.err.println(  "خطا در update" + e.getMessage());
+            System.err.println("خطا در update" + e.getMessage());
         }
     }
 
     @Override
     public void delete(int id) {
-        String sql = "DELETE * FROM products WHERE id= ?" ;
+        String sql = "DELETE * FROM products WHERE id= ?";
         try (Connection conn = DataBaseConnection.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql)){
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
 
-            stmt.setInt(1,id);
+            stmt.setInt(1, id);
             stmt.executeUpdate();
-
 
 
         } catch (SQLException e) {
             System.err.println("خطا در delete: " + e.getMessage());
         }
     }
+
+    public Product findByCode(String code) {       // برای اینکه کد تکراری نداشته باشیم
+        String sql = "SELECT * FROM products WHERE code = ?";
+        try (Connection conn = DataBaseConnection.getConnection()) {
+
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, code);
+            try (ResultSet rs = stmt.executeQuery()){
+                if (rs.next()){
+                    return mapRow(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("خطا در findByCode: " + e.getMessage());
+        }
+        return null;
+    }
+
 
     private Product mapRow(ResultSet rs) throws SQLException {
         Product p = new Product(

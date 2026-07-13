@@ -16,7 +16,7 @@ import static database.configuration.DataBaseConnection.connection;
 import static model.role.Role.WAREHOUSE_KEEPER;
 
 public class Main {
-        private static final Scanner scanner = new Scanner(System.in);
+    private static final Scanner scanner = new Scanner(System.in);
     private static WareHouseService wareHouseService;
     private static int nextProductId = 1;
     private static AlertService alertService = new AlertService();
@@ -28,29 +28,29 @@ public class Main {
         System.out.println("=== سیستم مدیریت انبار ===\n");
 
         ProductRepository repository = ChooseRepository();
-         wareHouseService = new WareHouseService(repository);
+        wareHouseService = new WareHouseService(repository);
 
 
-        if (wareHouseService.getAllProducts().isEmpty()){
+        if (wareHouseService.getAllProducts().isEmpty()) {
             initialProductSeed();
-        }else {
-            nextProductId =  wareHouseService.getAllProducts().stream().mapToInt(Product::getId).max().orElse(0) +1 ;
+        } else {
+            nextProductId = wareHouseService.getAllProducts().stream().mapToInt(Product::getId).max().orElse(0) + 1;
             System.out.println("✅ " + wareHouseService.getAllProducts().size() + " کالای قبلی از حافظه پایدار بارگذاری شد.\n");
 
 
-            alertService.startBackgroundMonitoring(wareHouseService, Long.valueOf(50000));
+            alertService.startBackgroundMonitoring(wareHouseService, Long.valueOf(180_000));
 
-        if (!login()){
+            if (!login()) {
                 System.out.println("ورود ناموفق. برنامه بسته می‌شود.");
                 return;
             }
 
             boolean running = true;
-            while (running){
+            while (running) {
 
                 printMenu();
                 String choice = scanner.nextLine().trim();
-                switch (choice){
+                switch (choice) {
                     case "1" -> viewAllProducts();
                     case "2" -> addProduct();
                     case "3" -> sellProduct();
@@ -58,7 +58,8 @@ public class Main {
                     case "5" -> viewLowStock();
                     case "6" -> viewTransactionHistory();
                     case "7" -> generateAndExportReport();
-                    case "0" -> {running = false;
+                    case "0" -> {
+                        running = false;
                         alertService.stopBackgroundMonitoring();
                         System.out.println("خروج از برنامه. خدانگهدار!");
                     }
@@ -67,7 +68,8 @@ public class Main {
             }
         }
     }
-    private static void printMenu(){
+
+    private static void printMenu() {
         System.out.println("---------------------------------");
         System.out.println("1) مشاهده لیست کالاها");
         System.out.println("2) ثبت کالای جدید");
@@ -79,7 +81,8 @@ public class Main {
         System.out.println("0) خروج");
         System.out.print("انتخاب شما: ");
     }
-    private static ProductRepository ChooseRepository(){
+
+    private static ProductRepository ChooseRepository() {
 
         System.out.println("داده‌های کالا کجا ذخیره شوند؟");
         System.out.println("1) فقط در حافظه (In-Memory) - با بستن برنامه پاک می‌شود");
@@ -87,28 +90,29 @@ public class Main {
         System.out.println("3) Java Serialization (products.dat) - پایدار و باینری است");
         System.out.print("انتخاب شما: ");
         String choice = scanner.nextLine().trim();
-       return switch (choice) {
+        return switch (choice) {
 
-           case "2" -> {
-               System.out.println("→ در حال استفاده از ProductJsonRepository (products.json)\n");
-               yield new ProductJsonRepository("products.json");
-           }
-           case "3" -> {
-               System.out.println("→ در حال استفاده از ProductSerializationRepository (products.dat)\n");
-               yield new ProductSerializationRepository("products.dat");
-           }
-
-
-           default -> {
-               System.out.println("→ در حال استفاده از ProductInMemoryRepository (بدون پایداری)\n");
-               yield new ProductInMemoryRepository();
+            case "2" -> {
+                System.out.println("→ در حال استفاده از ProductJsonRepository (products.json)\n");
+                yield new ProductJsonDbRepository(new ProductJsonRepository("products.json"));
+            }
+            case "3" -> {
+                System.out.println("→ در حال استفاده از ProductSerializationRepository (products.dat)\n");
+                yield new ProductSerializationRepository("products.dat");
+            }
 
 
-           }
+            default -> {
+                System.out.println("→ در حال استفاده از ProductInMemoryRepository (بدون پایداری)\n");
+                yield new ProductInMemoryRepository();
 
-       };
+
+            }
+
+        };
     }
-    private static boolean login(){
+
+    private static boolean login() {
 
         System.out.println("انتخاب نقش برای ورود:");
         System.out.println("1) مدیر (Admin)");
@@ -117,12 +121,12 @@ public class Main {
         System.out.print("انتخاب شما: ");
 
         String choice = scanner.nextLine().trim();
-        currentUser = switch (choice){
+        currentUser = switch (choice) {
 
             case "1" -> new Admin(1, "ali_admin", "hashed_pw");
             case "2" -> new InventoryManager(2, "ali_keeper", "hashed_pw");
-            case "3" -> new Inspector(3 , "alialialiinspector" , "123456");
-            default -> null ;
+            case "3" -> new Inspector(3, "alialialiinspector", "123456");
+            default -> null;
         };
 
         if (currentUser != null) {
@@ -132,9 +136,9 @@ public class Main {
         return false;
     }
 
-    private static void initialProductSeed(){
+    private static void initialProductSeed() {
 
-        wareHouseService.addProduct( new Product(nextProductId++, "لپ‌تاپ ایسوس", "LP-001", "الکترونیک", 25000000, 29000000, 8, 3),
+        wareHouseService.addProduct(new Product(nextProductId++, "لپ‌تاپ ایسوس", "LP-001", "الکترونیک", 25000000, 29000000, 8, 3),
                 new Admin(0, "system", "system"));
         wareHouseService.addProduct(
                 new Product(nextProductId++, "ماوس لاجیتک", "MS-002", "لوازم جانبی", 350000, 450000, 2, 5),
@@ -145,15 +149,16 @@ public class Main {
                 new Admin(0, "system", "system"));
 
     }
-    private static void viewAllProducts(){
-         List<Product> products = wareHouseService.getAllProducts();
+
+    private static void viewAllProducts() {
+        List<Product> products = wareHouseService.getAllProducts();
         System.out.println("\n--- لیست کالاها ---");
-        for(Product p : products){
+        for (Product p : products) {
             StringBuilder line = new StringBuilder();
             line.append(p.getId()).append(". ").append(p.getName())
                     .append(" [").append(p.getCode()).append("] - موجودی: ").append(p.getQuantity())
                     .append(" - وضعیت: ").append(p.getStatus());
-            if (currentUser.canEditStock()){
+            if (currentUser.canEditStock()) {
                 line.append(" - قیمت فروش: ").append(p.getSellPrice());
 
             }
@@ -161,7 +166,8 @@ public class Main {
         }
         System.out.println();
     }
-    private static void addProduct(){
+
+    private static void addProduct() {
         if (!currentUser.canEditStock()) {
             System.out.println("\n شما اجازه ثبت کالا را ندارید.\n");
             return;
@@ -185,69 +191,99 @@ public class Main {
         System.out.println("✅ کالا با موفقیت ثبت شد.\n");
 
     }
-    private static void sellProduct(){
+
+    private static void sellProduct() {
         System.out.print("شناسه (id) کالا برای فروش: ");
         int id = Integer.parseInt(scanner.nextLine());
         System.out.print("تعداد فروش: ");
         int qty = Integer.parseInt(scanner.nextLine());
         try {
-            wareHouseService.sellProduct(id , qty , currentUser);
+            wareHouseService.sellProduct(id, qty, currentUser);
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("خطا: " + e.getMessage() + "\n");
         }
     }
-    private static void purchaseProduct(){
-        if (!currentUser.canEditStock()){
+
+
+
+    private static Product resolveProduct(String input) {
+        try {
+            int id = Integer.parseInt(input);
+            return wareHouseService.getAllProducts().stream()
+                    .filter(p -> p.getId() == id)
+                    .findFirst()
+                    .orElse(null);
+        } catch (NumberFormatException e) {
+            // ورودی عدد نبود، پس به‌عنوان کد کالا جستجو می‌کنیم
+            return wareHouseService.findProductByCode(input).orElse(null);
+        }
+    }
+
+
+
+    private static void purchaseProduct() {
+        if (!currentUser.canEditStock()) {
             System.out.println("\n شما اجازه ثبت خرید ندارید.\n");
             return;
         }
         System.out.print("شناسه (id) کالا برای افزایش موجودی: ");
-        int id = Integer.parseInt(scanner.nextLine());
+
+        String input = scanner.nextLine().trim();
+        Product product = resolveProduct(input);
+        if (product == null) {
+            System.out.println("⚠ کالایی با این شناسه یا کد پیدا نشد.\n");
+            return;
+        }
+
         System.out.print("تعداد خرید: ");
         int qty = Integer.parseInt(scanner.nextLine());
-        try{
-            wareHouseService.purchaseProduct(id , qty , currentUser);
+        try {
+            wareHouseService.purchaseProduct(product.getId(), qty, currentUser);
             System.out.println(" خرید با موفقیت ثبت شد.\n");
 
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("خطا: " + e.getMessage() + "\n");
 
         }
-    }private static void viewLowStock(){
+    }
+
+    private static void viewLowStock() {
 
         List<Product> lowStock = AlertService.checkLowStock(wareHouseService.getAllProducts());
         System.out.println("\n--- کالاهای با موجودی کم ---");
-        if (lowStock.isEmpty()){
+        if (lowStock.isEmpty()) {
             System.out.println("everything just fine ! ...");
 
-        }else {
+        } else {
             lowStock.forEach(p -> System.out.println("⚠ " + p.getName() + " - باقی‌مانده: " + p.getQuantity()));
         }
         System.out.println();
     }
-    private static void viewTransactionHistory(){
+
+    private static void viewTransactionHistory() {
         if (!currentUser.canViewReports() && currentUser.getRole() != Role.WAREHOUSE_KEEPER) {
             System.out.println("\n شما اجازه مشاهده تاریخچه را ندارید.\n");
             return;
         }
         List<Transaction> history = wareHouseService.getTransactionHistory();
         System.out.println("\n--- تاریخچه تراکنش‌ها ---");
-        if (history.isEmpty()){
+        if (history.isEmpty()) {
             System.out.println("(هنوز هیچ تراکنشی در دیتابیس ثبت نشده - این بخش با اتصال واقعی JDBC کار می‌کند)");
-        }else {
-            history.forEach(System.out :: println);
+        } else {
+            history.forEach(System.out::println);
         }
         System.out.println();
     }
-    private static void generateAndExportReport(){
-        if (!currentUser.canViewReports()){
+
+    private static void generateAndExportReport() {
+        if (!currentUser.canViewReports()) {
             System.out.println("\n شما اجازه مشاهده گزارش‌ها را ندارید.\n");
             return;
         }
-            List<Product> products = wareHouseService.getAllProducts();
-            List<Transaction> transactions = wareHouseService.getTransactionHistory();
-        ReportData reportData = ReportService.generateReport(products,transactions);
+        List<Product> products = wareHouseService.getAllProducts();
+        List<Transaction> transactions = wareHouseService.getTransactionHistory();
+        ReportData reportData = ReportService.generateReport(products, transactions);
 
         System.out.println("\n--- گزارش نهایی ---");
         System.out.println(reportData);
@@ -273,12 +309,6 @@ public class Main {
 
 
     }
-
-
-
-
-
-
 
 
 }
