@@ -118,9 +118,9 @@ public class ProductGenericRepository implements GenericRepository<Product> {
 
     public Product findByCode(String code) {       // برای اینکه کد تکراری نداشته باشیم
         String sql = "SELECT * FROM products WHERE code = ?";
-        try (Connection conn = DataBaseConnection.getConnection()) {
+        try (Connection conn = DataBaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, code);
             try (ResultSet rs = stmt.executeQuery()){
                 if (rs.next()){

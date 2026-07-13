@@ -40,10 +40,10 @@ public class ProductJsonDbRepository implements ProductRepository {
 
     @Override
     public void update(Product product) {
-        dbRepository.update(product);
+        jsonRepository.update(product);
 
         Product existingInDb = dbRepository.findByCode(product.getCode());
-        if (existingInDb == null) {
+        if (existingInDb != null) {
 
             Product ProductWithRealId = new Product(
                     existingInDb.getId(),

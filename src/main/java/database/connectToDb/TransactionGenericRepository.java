@@ -24,6 +24,8 @@ public class TransactionGenericRepository implements GenericRepository<Transacti
         try (Connection conn = DataBaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+                stmt.setInt(1,id);
+
             try (ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
                     return mapRow(rs);
@@ -41,8 +43,8 @@ public class TransactionGenericRepository implements GenericRepository<Transacti
 
 
         private Transaction mapRow(ResultSet rs) throws SQLException {
-            int productId = rs.getInt("product_id");
-            Product product = productDao.findById(productId);
+            String productCode = rs.getString("product_code");
+            Product product = productDao.findByCode(productCode);
 
 
             return new Transaction(
@@ -80,11 +82,11 @@ public class TransactionGenericRepository implements GenericRepository<Transacti
 
     @Override
     public void save(Transaction t) {
-        String sql = "INSERT INTO transactions (product_id, type, quantity, performed_by) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO transactions (product_code, type, quantity, performed_by) VALUES (?, ?, ?, ?)";
         try (Connection conn = DataBaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, t.getProduct().getId());
+            stmt.setString(1, t.getProduct().getCode());
             stmt.setString(2, t.getType().name());
             stmt.setInt(3, t.getQuantity());
             stmt.setString(4, t.getPerformedByUsername());
