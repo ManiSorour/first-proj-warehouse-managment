@@ -194,17 +194,21 @@ public class Main {
 
     private static void sellProduct() {
         System.out.print("شناسه (id) کالا برای فروش: ");
-        int id = Integer.parseInt(scanner.nextLine());
+        String input = scanner.nextLine().trim();
+        Product product = resolveProduct(input);
+        if (product == null) {
+            System.out.println("⚠ کالایی با این شناسه یا کد پیدا نشد.\n");
+            return;
+        }
         System.out.print("تعداد فروش: ");
         int qty = Integer.parseInt(scanner.nextLine());
         try {
-            wareHouseService.sellProduct(id, qty, currentUser);
+            wareHouseService.sellProduct(product.getId(), qty, currentUser);
 
         } catch (Exception e) {
             System.out.println("خطا: " + e.getMessage() + "\n");
         }
     }
-
 
 
     private static Product resolveProduct(String input) {
@@ -219,7 +223,6 @@ public class Main {
             return wareHouseService.findProductByCode(input).orElse(null);
         }
     }
-
 
 
     private static void purchaseProduct() {
