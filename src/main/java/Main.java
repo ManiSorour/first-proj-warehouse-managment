@@ -36,37 +36,152 @@ public class Main {
         } else {
             nextProductId = wareHouseService.getAllProducts().stream().mapToInt(Product::getId).max().orElse(0) + 1;
             System.out.println("✅ " + wareHouseService.getAllProducts().size() + " کالای قبلی از حافظه پایدار بارگذاری شد.\n");
+        }
 
+        alertService.startBackgroundMonitoring(wareHouseService, Long.valueOf(180_000));
 
-            alertService.startBackgroundMonitoring(wareHouseService, Long.valueOf(180_000));
+        if (!login()) {
+            System.out.println("ورود ناموفق. برنامه بسته می‌شود.");
+            return;
+        }
+        boolean running = true;
+        while (running) {
 
-            if (!login()) {
-                System.out.println("ورود ناموفق. برنامه بسته می‌شود.");
-                return;
-            }
-
-            boolean running = true;
-            while (running) {
-
-                printMenu();
-                String choice = scanner.nextLine().trim();
-                switch (choice) {
-                    case "1" -> viewAllProducts();
-                    case "2" -> addProduct();
-                    case "3" -> sellProduct();
-                    case "4" -> purchaseProduct();
-                    case "5" -> viewLowStock();
-                    case "6" -> viewTransactionHistory();
-                    case "7" -> generateAndExportReport();
-                    case "0" -> {
-                        running = false;
-                        alertService.stopBackgroundMonitoring();
-                        System.out.println("خروج از برنامه. خدانگهدار!");
-                    }
-                    default -> System.out.println("گزینه نامعتبر است.\n");
+            printMenu();
+            String choice = scanner.nextLine().trim();
+            switch (choice) {
+                case "1" -> viewAllProducts();
+                case "2" -> addProduct();
+                case "3" -> sellProduct();
+                case "4" -> purchaseProduct();
+                case "5" -> viewLowStock();
+                case "6" -> viewTransactionHistory();
+                case "7" -> generateAndExportReport();
+                case "8" -> searchByCategory();
+                case "9" -> editProduct();
+                case "10" -> deleteProduct();
+                case "0" -> {
+                    running = false;
+                    alertService.stopBackgroundMonitoring();
+                    System.out.println("خروج از برنامه. خدانگهدار!");
                 }
+                default -> System.out.println("گزینه نامعتبر است.\n");
             }
         }
+
+    }
+
+
+    private static void editProduct() {
+        if (!currentUser.canEditStock()) {
+            System.out.println("\n شما اجازه ویرایش کالا را ندارید.\n");
+            return;
+        }
+
+        System.out.print("شناسه (id) یا کد کالا برای ویرایش: ");
+        Product product = resolveProduct(scanner.nextLine().trim());
+        if (product == null) {
+            System.out.println("⚠ کالایی با این شناسه یا کد پیدا نشد.\n");
+            return;
+        }
+
+        System.out.println("برای نگه‌داشتن مقدار فعلی، فقط Enter بزنید.");
+
+        System.out.print("نام کالا [" + product.getName() + "]: ");
+        String name = scanner.nextLine().trim();
+        if (name.isEmpty()) {
+            name = product.getName();
+        }
+
+        System.out.print("کد کالا [" + product.getCode() + "]: ");
+        String code = scanner.nextLine().trim();
+        if (code.isEmpty()) {
+            code = product.getCode();
+        }
+        System.out.print("دسته‌بندی [" + product.getCategory() + "]: ");
+        String category = scanner.nextLine().trim();
+        if (category.isEmpty()) {
+            code = product.getCategory();
+        }
+
+        System.out.print("قیمت خرید [" + product.getPurchasePrice() + "]: ");
+        String purchaseInput = scanner.nextLine().trim();
+        double purchasePrice = purchaseInput.isEmpty() ? product.getPurchasePrice() : Double.parseDouble(purchaseInput);    //  if i use the (if_else) i must wrapped this in purchase price Double  but use the ternary operation is easy
+
+        System.out.print("قیمت فروش [" + product.getSellPrice() + "]: ");
+        String sellInput = scanner.nextLine().trim();
+        double sellPrice = sellInput.isEmpty() ? product.getSellPrice() : Double.parseDouble(sellInput);   //same as top scope
+
+        System.out.print("حداقل موجودی مجاز [" + product.getMinStockLevel() + "]: ");
+        String minInput = scanner.nextLine().trim();
+        int minStockLevel = minInput.isEmpty() ? product.getMinStockLevel() : Integer.parseInt(minInput);
+
+
+        try {
+            wareHouseService.updateProduct(product.getId(), name, code, category, purchasePrice, sellPrice, minStockLevel, currentUser);
+            System.out.println("✅ کالا با موفقیت ویرایش شد.\n");
+        } catch (Exception e) {
+            System.out.println("خطا: " + e.getMessage() + "\n");
+
+        }
+    }
+
+    private static void deleteProduct() {
+        if (!currentUser.canEditStock()){
+            System.out.println("\n شما اجازه حذف کالا را ندارید.\n");
+            return;
+        }
+        System.out.print("شناسه (id) یا کد کالا برای حذف: ");
+        Product product = resolveProduct(scanner.nextLine().trim());
+        if (product == null){
+            System.out.println(" کالایی با این شناسه یا کد پیدا نشد.\n");
+            return;
+        }
+        System.out.print("آیا از حذف «" + product.getName() + "» مطمئنید؟ (بله/خیر): ");
+        if (!scanner.nextLine().trim().equals("بله")){
+            System.out.println("حذف لغو شد.\n");
+            return;
+        }
+
+        try {
+            wareHouseService.deleteProduct(product.getId() , currentUser);
+            System.out.println(" کالا حذف شد.\n");
+        }catch (Exception e){
+            System.out.println("خطا: " + e.getMessage() + "\n");
+        }
+
+    }
+
+
+    private static void searchByCategory() {
+        List<String> categories = wareHouseService.getAllCategories();
+        if (categories.isEmpty()) {
+            System.out.println("\nهیچ کالایی در انبار ثبت نشده.\n");
+            return;
+        }
+        System.out.println("\nدسته‌بندی‌های موجود: " + String.join(", ", categories));
+        System.out.print("دسته‌بندی مورد نظر برای جستجو: ");
+        String category = scanner.nextLine().trim();
+
+        List<Product> results = wareHouseService.findProductsByCategory(category);
+        System.out.println("\n--- نتایج جستجو در دسته‌بندی «" + category + "» ---");
+        if (results.isEmpty()) {
+            System.out.println("کالای با این دسته بندی وجود ندارد ");
+        } else {
+
+            for (Product p : results) {
+                StringBuilder line = new StringBuilder();
+                line.append(p.getId()).append(". ").append(p.getName())
+                        .append(" [").append(p.getCode()).append("] - موجودی: ").append(p.getQuantity())
+                        .append(" - وضعیت: ").append(p.getStatus());
+                if (currentUser.canEditStock()) {
+                    line.append(" - قیمت فروش: ").append(p.getSellPrice());
+                }
+                System.out.println(line);
+            }
+        }
+
+
     }
 
     private static void printMenu() {
@@ -78,6 +193,9 @@ public class Main {
         System.out.println("5) مشاهده هشدار موجودی کم");
         System.out.println("6) مشاهده تاریخچه تراکنش‌ها");
         System.out.println("7) گزارش نهایی (ارزش انبار + پرفروش‌ها)");
+        System.out.println("8) جستجوی کالا بر اساس دسته‌بندی");
+        System.out.println("9) ویرایش کالا");
+        System.out.println("10) حذف کالا");
         System.out.println("0) خروج");
         System.out.print("انتخاب شما: ");
     }

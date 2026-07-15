@@ -102,7 +102,7 @@ public class ProductGenericRepository implements GenericRepository<Product> {
 
     @Override
     public void delete(int id) {
-        String sql = "DELETE * FROM products WHERE id= ?";
+        String sql = "DELETE FROM products WHERE id= ?";
         try (Connection conn = DataBaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
