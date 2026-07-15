@@ -5,6 +5,7 @@ import database.connectToDb.ProductGenericRepository;
 import database.connectToDb.TransactionGenericRepository;
 
 import model.product.Product;
+import model.product.ProductStatus;
 import model.role.User;
 import model.transaction.Transaction;
 import model.transaction.TransactionType;
@@ -113,6 +114,29 @@ private final ProductRepository productRepository;
                         .orElseThrow(() -> new IllegalArgumentException("کالایی با این شناسه پیدا نشد"));
          productRepository.delete(productID);
     }
+
+
+    public List<Product> findProductsByPriceRange(double minPrice , double maxPrice) {
+
+        if (maxPrice > minPrice){
+            System.out.println("حداثر قیمت نمیتواند از حداقل قیمت بیشتر باشد ");
+        }
+
+        return productRepository.findAll().stream()
+                .filter(p -> p.getSellPrice()<= maxPrice && p.getSellPrice()>= minPrice)
+                .collect(Collectors.toList());
+
+    }
+
+    public List<Product> findProductsByStatus(ProductStatus status){
+        return productRepository.findAll().stream()
+                .filter(p-> p.getStatus() == status)
+                .collect(Collectors.toList());
+    }
+
+
+
+
 
 
 

@@ -2,18 +2,21 @@ import files.FileExporter;
 import files.ReportData;
 import files.ReportService;
 import model.product.Product;
+import model.product.ProductStatus;
 import model.role.*;
 import model.transaction.Transaction;
 import repository.*;
 import service.AlertService;
+import service.UserService;
 import service.WareHouseService;
 
 import java.io.IOException;
+import java.security.PrivateKey;
 import java.util.List;
 import java.util.Scanner;
 
 import static database.configuration.DataBaseConnection.connection;
-import static model.role.Role.WAREHOUSE_KEEPER;
+import static model.role.Role.*;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
@@ -22,6 +25,8 @@ public class Main {
     private static AlertService alertService = new AlertService();
     private static User currentUser;
     private static FileExporter fileExporter = new FileExporter();
+
+    private static final UserService userService = new UserService();
 
 
     public static void main(String[] args) {
@@ -60,6 +65,10 @@ public class Main {
                 case "8" -> searchByCategory();
                 case "9" -> editProduct();
                 case "10" -> deleteProduct();
+                case "11" -> filterByPriceRange();
+                case "12" -> filterByStatus();
+                case "13" -> adminPanel();
+
                 case "0" -> {
                     running = false;
                     alertService.stopBackgroundMonitoring();
@@ -68,6 +77,147 @@ public class Main {
                 default -> System.out.println("گزینه نامعتبر است.\n");
             }
         }
+
+    }
+
+    //----------------------------------------------------------------panel admin ---------
+    private static void adminPanel() {
+
+        if (currentUser.getRole() != ADMIN) {
+            System.out.println("\n⚠ فقط مدیر به این بخش دسترسی دارد.\n");
+            return;
+        }
+
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- پنل مدیریت کاربران ---");
+            System.out.println("1) لیست کاربران");
+            System.out.println("2) افزودن کاربر جدید");
+            System.out.println("3) حذف کاربر");
+            System.out.println("0) بازگشت به منوی اصلی");
+            System.out.print("انتخاب شما: ");
+            String choice = scanner.nextLine().trim();
+
+            switch (choice) {
+                case "1" -> listUsers();
+                case "2" -> addUser();
+                case "3" -> removeUser();
+                case "0" -> back = true;
+                default -> System.out.println("گزینه نامعتبر است.\n");
+            }
+        }
+    }
+
+    private static void listUsers() {
+        try {
+            List<User> users = userService.listUsers(currentUser);
+            System.out.println("\n--- لیست کاربران ---");
+            if (users.isEmpty()) {
+                System.out.println("هیچ کاربری در دیتابیس ثبت نشده.");
+            } else {
+                users.forEach(u -> System.out.println(u.getId() + ". " + u.getUsername() + " (" + u.getRole() + ")"));
+            }
+            System.out.println();
+        } catch (Exception e) {
+            System.out.println("خطا: " + e.getMessage() + "\n");
+        }
+
+    }
+
+
+    private static void addUser() {
+        System.out.print("نام کاربری: ");
+        String username = scanner.nextLine().trim();
+        System.out.print("رمز عبور: ");
+        String password = scanner.nextLine().trim();
+        System.out.println("نقش (1: Admin / 2: Warehouse Keeper / 3: Inspector): ");
+        String roleChoice = scanner.nextLine().trim();
+        Role role = switch (roleChoice){
+            case "1" -> ADMIN;
+            case "2" -> WAREHOUSE_KEEPER;
+            case "3" -> INSPECTOR;
+            default -> null;
+        };
+        if(role == null){
+            System.out.println("نقش نامعتبر است.\n");
+            return;
+        }
+        try {
+            userService.addUser(username , password , role , currentUser);
+            System.out.println("✅ کاربر با موفقیت اضافه شد.\n");
+
+        }catch (Exception e){
+            System.out.println("خطا: " + e.getMessage() + "\n");
+        }
+    }
+
+    private static void removeUser() {
+        listUsers();
+        System.out.print("شناسه (id) کاربری که می‌خواهید حذف کنید: ");
+        try {
+            int id = Integer.parseInt(scanner.nextLine().trim());
+            userService.deleteUser(id , currentUser);
+            System.out.println("✅ کاربر حذف شد.\n");
+        }catch (NumberFormatException e) {
+            System.out.println("⚠ لطفاً یک عدد معتبر وارد کنید.\n");
+        } catch (Exception e) {
+            System.out.println("خطا: " + e.getMessage() + "\n");
+        }
+
+
+
+
+
+
+
+    }
+
+
+    //------------------  ^ ^ ----------------------------------------------------------  ^ ^ ----------------------------
+    private static void printProductList(List<Product> products, String title) {
+        System.out.println("\n--- " + title + " ---");
+        if (products.isEmpty()) {
+            System.out.println("کالایی یافت نشد.");
+        } else {
+            for (Product p : products) {
+                StringBuilder line = new StringBuilder();
+                line.append(p.getId()).append(". ").append(p.getName())
+                        .append(" [").append(p.getCode()).append("] - موجودی: ").append(p.getQuantity())
+                        .append(" - وضعیت: ").append(p.getStatus());
+                if (currentUser.canEditStock()) {
+                    line.append(" - قیمت فروش: ").append(p.getSellPrice());
+                }
+                System.out.println(line);
+            }
+        }
+        System.out.println();
+    }
+
+    private static void filterByPriceRange() {
+
+        try {
+            System.out.print("حداقل قیمت فروش: ");
+            double min = Double.parseDouble(scanner.nextLine().trim());
+            System.out.println("حداکثر قیمت فروش");
+            double max = Double.parseDouble(scanner.nextLine().trim());
+
+            List<Product> results = wareHouseService.findProductsByPriceRange(min, max);
+            printProductList(results, "نتایج فیلتر قیمت بین " + min + " تا " + max);
+        } catch (NumberFormatException e) {
+            System.out.println("⚠ لطفاً یک عدد معتبر وارد کنید.\n");
+        } catch (IllegalArgumentException e) {
+            System.out.println("خطا: " + e.getMessage() + "\n");
+        }
+    }
+
+    private static void filterByStatus() {
+        System.out.print("وضعیت مورد نظر (1: موجود / 2: ناموجود): ");
+        String choice = scanner.nextLine().trim();
+        ProductStatus status = choice.equals("2") ? ProductStatus.OUT_OF_STOCK : ProductStatus.AVAILABLE;
+
+        List<Product> results = wareHouseService.findProductsByStatus(status);
+        printProductList(results, "نتایج فیلتر وضعیت: " + status);
+
 
     }
 
@@ -127,26 +277,26 @@ public class Main {
     }
 
     private static void deleteProduct() {
-        if (!currentUser.canEditStock()){
+        if (!currentUser.canEditStock()) {
             System.out.println("\n شما اجازه حذف کالا را ندارید.\n");
             return;
         }
         System.out.print("شناسه (id) یا کد کالا برای حذف: ");
         Product product = resolveProduct(scanner.nextLine().trim());
-        if (product == null){
+        if (product == null) {
             System.out.println(" کالایی با این شناسه یا کد پیدا نشد.\n");
             return;
         }
         System.out.print("آیا از حذف «" + product.getName() + "» مطمئنید؟ (بله/خیر): ");
-        if (!scanner.nextLine().trim().equals("بله")){
+        if (!scanner.nextLine().trim().equals("بله")) {
             System.out.println("حذف لغو شد.\n");
             return;
         }
 
         try {
-            wareHouseService.deleteProduct(product.getId() , currentUser);
+            wareHouseService.deleteProduct(product.getId(), currentUser);
             System.out.println(" کالا حذف شد.\n");
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("خطا: " + e.getMessage() + "\n");
         }
 
@@ -196,6 +346,11 @@ public class Main {
         System.out.println("8) جستجوی کالا بر اساس دسته‌بندی");
         System.out.println("9) ویرایش کالا");
         System.out.println("10) حذف کالا");
+        System.out.println("11) فیلتر بر اساس بازه‌ی قیمت");
+        System.out.println("12) فیلتر بر اساس وضعیت (موجود/ناموجود)");
+        if (currentUser.getRole() == ADMIN) {
+            System.out.println("13) پنل مدیریت کاربران (Admin)");
+        }
         System.out.println("0) خروج");
         System.out.print("انتخاب شما: ");
     }
@@ -383,7 +538,7 @@ public class Main {
     }
 
     private static void viewTransactionHistory() {
-        if (!currentUser.canViewReports() && currentUser.getRole() != Role.WAREHOUSE_KEEPER) {
+        if (!currentUser.canViewReports() && currentUser.getRole() != WAREHOUSE_KEEPER) {
             System.out.println("\n شما اجازه مشاهده تاریخچه را ندارید.\n");
             return;
         }
