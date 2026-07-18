@@ -97,6 +97,31 @@ public class TransactionGenericRepository implements GenericRepository<Transacti
         }
     }
 
+
+    public void save(Connection conn , Transaction t){
+
+        String sql = "INSERT INTO transactions (product_code, type, quantity, performed_by) VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)){
+
+            stmt.setString(1, t.getProduct().getCode());
+            stmt.setString(2, t.getType().name());
+            stmt.setInt(3, t.getQuantity());
+            stmt.setString(4, t.getPerformedByUsername());
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+
+
+
+
+
         @Override
     public void update(Transaction t) {
 

@@ -144,7 +144,7 @@ public class Main {
         }
         try {
             userService.addUser(username , password , role , currentUser);
-            System.out.println("✅ کاربر با موفقیت اضافه شد.\n");
+            System.out.println("کاربر با موفقیت اضافه شد.\n");
 
         }catch (Exception e){
             System.out.println("خطا: " + e.getMessage() + "\n");
@@ -157,21 +157,15 @@ public class Main {
         try {
             int id = Integer.parseInt(scanner.nextLine().trim());
             userService.deleteUser(id , currentUser);
-            System.out.println("✅ کاربر حذف شد.\n");
+            System.out.println(" کاربر حذف شد.\n");
         }catch (NumberFormatException e) {
             System.out.println("⚠ لطفاً یک عدد معتبر وارد کنید.\n");
         } catch (Exception e) {
             System.out.println("خطا: " + e.getMessage() + "\n");
         }
 
-
-
-
-
-
-
     }
-
+ّ
 
     //------------------  ^ ^ ----------------------------------------------------------  ^ ^ ----------------------------
     private static void printProductList(List<Product> products, String title) {
@@ -251,7 +245,7 @@ public class Main {
         System.out.print("دسته‌بندی [" + product.getCategory() + "]: ");
         String category = scanner.nextLine().trim();
         if (category.isEmpty()) {
-            code = product.getCategory();
+            category = product.getCategory();
         }
 
         System.out.print("قیمت خرید [" + product.getPurchasePrice() + "]: ");
@@ -333,6 +327,10 @@ public class Main {
 
 
     }
+
+
+
+
 
     private static void printMenu() {
         System.out.println("---------------------------------");

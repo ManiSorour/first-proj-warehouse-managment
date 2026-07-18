@@ -100,6 +100,41 @@ public class ProductGenericRepository implements GenericRepository<Product> {
         }
     }
 
+
+    public void update(Connection conn , Product p){
+
+        String sql = "UPDATE products SET name=?, code=?, category=?, purchase_price=?, " +
+                "sell_price=?, quantity=?, min_stock_level=? WHERE id=?";
+
+
+        try (PreparedStatement stmt =conn.prepareStatement(sql)){
+
+
+            stmt.setString(1, p.getName());
+            stmt.setString(2, p.getCode());
+            stmt.setString(3, p.getCategory());
+            stmt.setDouble(4, p.getPurchasePrice());
+            stmt.setDouble(5, p.getSellPrice());
+            stmt.setInt(6, p.getQuantity());
+            stmt.setInt(7, p.getMinStockLevel());
+            stmt.setInt(8, p.getId());
+            stmt.executeUpdate();
+
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+
+
+
+
+
+
+
+
     @Override
     public void delete(int id) {
         String sql = "DELETE FROM products WHERE id= ?";
