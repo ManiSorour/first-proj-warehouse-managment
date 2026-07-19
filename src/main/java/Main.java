@@ -156,16 +156,14 @@ public class Main {
         System.out.print("شناسه (id) کاربری که می‌خواهید حذف کنید: ");
         try {
             int id = Integer.parseInt(scanner.nextLine().trim());
-            userService.deleteUser(id , currentUser);
+            userService.deleteUser(id, currentUser);
             System.out.println(" کاربر حذف شد.\n");
-        }catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             System.out.println("⚠ لطفاً یک عدد معتبر وارد کنید.\n");
         } catch (Exception e) {
             System.out.println("خطا: " + e.getMessage() + "\n");
         }
-
     }
-ّ
 
     //------------------  ^ ^ ----------------------------------------------------------  ^ ^ ----------------------------
     private static void printProductList(List<Product> products, String title) {
@@ -475,10 +473,11 @@ public class Main {
         int qty = Integer.parseInt(scanner.nextLine());
         try {
             wareHouseService.sellProduct(product.getId(), qty, currentUser);
-
+            System.out.println("فروش با موفقیت ثبت شد"); //////////////
         } catch (Exception e) {
             System.out.println("خطا: " + e.getMessage() + "\n");
         }
+
     }
 
 

@@ -20,16 +20,16 @@ public class ReportService {
     }
 
     // پرفروش‌ترین کالاها بر اساس مجموع تعداد فروخته‌شده در تاریخچه تراکنش‌ها
-    public static List<String> getBestSellingProducts(List<Transaction> transactions, int topN) {
+    public static List<String> getBestSellingProducts(List<Transaction> transactions, int top) {
         return transactions.stream()
                 .filter(t -> t.getType() == TransactionType.SELL)
-                .collect(Collectors.groupingBy(
+                .collect(Collectors.groupingBy(           // باید یه فور میذاشتم جاش گروپ بای گذاشتم تا بر اساس نام پیدا کنه موجودیو
                         t -> t.getProduct().getName(),
                         Collectors.summingInt(Transaction::getQuantity)
                 ))
-                .entrySet().stream()
+                .entrySet().stream()     // برای اینکه از مپ استریم بگیرم از این لاین استفاده میکمم
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(topN)
+                .limit(top)
                 .map(entry -> entry.getKey() + " (" + entry.getValue() + " عدد فروخته‌شده)")
                 .collect(Collectors.toList());
     }

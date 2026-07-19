@@ -11,6 +11,7 @@ import model.role.User;
 import model.transaction.Transaction;
 import model.transaction.TransactionType;
 import repository.ProductRepository;
+import repository.TransactionJsonRepository;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -27,6 +28,8 @@ public class WareHouseService {
     private final ProductRepository productRepository;
     private final ProductGenericRepository productDao = new ProductGenericRepository();
     private final TransactionGenericRepository transactionDao = new TransactionGenericRepository();
+
+    private final  TransactionJsonRepository transactionJsonRepository = new TransactionJsonRepository("transactions.json");
 
 
     public WareHouseService(ProductRepository repository) {
@@ -181,6 +184,10 @@ public class WareHouseService {
 
 
     public List<Transaction> getTransactionHistory() {
-        return transactionDao.findAll();
+        return transactionJsonRepository.findAll();
     }
+
+
+
+
 }
