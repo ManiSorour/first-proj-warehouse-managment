@@ -63,6 +63,7 @@ public class WareHouseService {
         }
 
         product.setQuantity(product.getQuantity() - quantity);
+        productRepository.update(product);
 
         Transaction transaction = new Transaction(0, product, TransactionType.SELL, quantity, performedBy.getUsername());
 
@@ -81,7 +82,7 @@ public class WareHouseService {
                         product.getQuantity(), product.getMinStockLevel()
                 );
                 productDao.update(conn, vasl);
-                transactionDao.save(conn, transaction);
+
                 conn.commit();
             } catch (SQLException e) {
                 System.err.println("خطا در ثبت اتمیک فروش، Rollback انجام شد: " + e.getMessage());
@@ -98,10 +99,13 @@ public class WareHouseService {
                     System.err.println("خطا در بازگرداندن autoCommit: " + e.getMessage());
                 }
             }
+        }else {
+            transactionDao.save(transaction);
         }
 
 
         transactionDao.save(transaction);
+        transactionJsonRepository.save(transaction);
     }
 
 
@@ -118,6 +122,7 @@ public class WareHouseService {
 
         Transaction transaction = new Transaction(0, product, TransactionType.PURCHASE, quantity, performedBy.getUsername());
         transactionDao.save(transaction);
+        transactionJsonRepository.save(transaction);
     }
 
 
@@ -154,7 +159,7 @@ public class WareHouseService {
     public List<Product> findProductsByPriceRange(double minPrice, double maxPrice) {
 
         if (maxPrice > minPrice) {
-            System.out.println("حداثر قیمت نمیتواند از حداقل قیمت بیشتر باشد ");
+            System.out.println("حداقل قیمت نمی‌تواند از حداکثر قیمت بیشتر باشد");
         }
 
         return productRepository.findAll().stream()

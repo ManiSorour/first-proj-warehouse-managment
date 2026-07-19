@@ -35,7 +35,7 @@ public class UserGenericRepository implements GenericRepository<User> {
 
     }
 
-    public  User mapRow(ResultSet rs) throws SQLException {
+    public static User mapRow(ResultSet rs) throws SQLException {
         int id = rs.getInt("id");
         String username = rs.getString("username");
         String passwordHash = rs.getString("password_hash");
@@ -51,7 +51,7 @@ public class UserGenericRepository implements GenericRepository<User> {
 
 
 
-    public User findByUsername (String username){                              // نوشتمش چونکه صفحه لاگین نیاز هست به یوزر و پسورد و نمیتونی با ایدی کاربر رو لاگین کنی
+    public static User findByUsername(String username){                              // نوشتمش چونکه صفحه لاگین نیاز هست به یوزر و پسورد و نمیتونی با ایدی کاربر رو لاگین کنی
 
         String sql = "SELECT * FROM users WHERE username = ?";
 

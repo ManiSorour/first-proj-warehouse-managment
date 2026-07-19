@@ -1,7 +1,6 @@
 package repository;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import model.transaction.Transaction;
 
@@ -10,11 +9,19 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class TransactionJsonRepository implements TransactionRepository {
 
-    private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private final Gson GSON = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class, (JsonSerializer<LocalDateTime>)
+                    (src, typeOfSrc, context) -> new JsonPrimitive(src.format(DATE_FORMAT)))
+            .registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>)
+                    (json, typeOfT, context) -> LocalDateTime.parse(json.getAsString(), DATE_FORMAT))
+            .create();
 
     private final List<Transaction> storage = new ArrayList<>();
 
@@ -59,8 +66,7 @@ public class TransactionJsonRepository implements TransactionRepository {
         Path mainPath = Path.of(filePath);
         Path temporalPath = Path.of(filePath + ".tmp");
 
-        try {
-            FileWriter writer = new FileWriter(temporalPath.toFile());
+        try (FileWriter writer = new FileWriter(temporalPath.toFile());){        // اگر توی ریسورس نذارمش فایل .tmp  بسته نمیشه هیچوقت
             GSON.toJson(storage, writer);
         } catch (IOException e) {
             System.err.println("خطا در نوشتن فایل: " + e.getMessage());

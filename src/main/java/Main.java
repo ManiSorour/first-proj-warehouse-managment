@@ -7,15 +7,14 @@ import model.role.*;
 import model.transaction.Transaction;
 import repository.*;
 import service.AlertService;
+import service.AuthService;
 import service.UserService;
 import service.WareHouseService;
 
 import java.io.IOException;
-import java.security.PrivateKey;
 import java.util.List;
 import java.util.Scanner;
 
-import static database.configuration.DataBaseConnection.connection;
 import static model.role.Role.*;
 
 public class Main {
@@ -45,10 +44,16 @@ public class Main {
 
         alertService.startBackgroundMonitoring(wareHouseService, Long.valueOf(180_000));
 
-        if (!login()) {
+        currentUser = login();
+        if (currentUser == null){
             System.out.println("ورود ناموفق. برنامه بسته می‌شود.");
             return;
         }
+        showMainMenu();
+
+    }
+
+    public static void showMainMenu() {
         boolean running = true;
         while (running) {
 
@@ -77,8 +82,8 @@ public class Main {
                 default -> System.out.println("گزینه نامعتبر است.\n");
             }
         }
-
     }
+
 
     //----------------------------------------------------------------panel admin ---------
     private static void adminPanel() {
@@ -132,21 +137,21 @@ public class Main {
         String password = scanner.nextLine().trim();
         System.out.println("نقش (1: Admin / 2: Warehouse Keeper / 3: Inspector): ");
         String roleChoice = scanner.nextLine().trim();
-        Role role = switch (roleChoice){
+        Role role = switch (roleChoice) {
             case "1" -> ADMIN;
             case "2" -> WAREHOUSE_KEEPER;
             case "3" -> INSPECTOR;
             default -> null;
         };
-        if(role == null){
+        if (role == null) {
             System.out.println("نقش نامعتبر است.\n");
             return;
         }
         try {
-            userService.addUser(username , password , role , currentUser);
+            userService.addUser(username, password, role, currentUser);
             System.out.println("کاربر با موفقیت اضافه شد.\n");
 
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("خطا: " + e.getMessage() + "\n");
         }
     }
@@ -327,9 +332,6 @@ public class Main {
     }
 
 
-
-
-
     private static void printMenu() {
         System.out.println("---------------------------------");
         System.out.println("1) مشاهده لیست کالاها");
@@ -381,28 +383,23 @@ public class Main {
         };
     }
 
-    private static boolean login() {
+    private static User login() {
+        System.out.println(" اطلاعات کاربری خود را وارد کنید " );
 
-        System.out.println("انتخاب نقش برای ورود:");
-        System.out.println("1) مدیر (Admin)");
-        System.out.println("2) انباردار (Warehouse Keeper)");
-        System.out.println("3) بازرس (Inspector)");
-        System.out.print("انتخاب شما: ");
+        System.out.println("username :");
+        String username = scanner.nextLine().trim();
+        System.out.println("password :");
+        String password = scanner.nextLine().trim();
 
-        String choice = scanner.nextLine().trim();
-        currentUser = switch (choice) {
+        User user = AuthService.login(username, password);
 
-            case "1" -> new Admin(1, "ali_admin", "hashed_pw");
-            case "2" -> new InventoryManager(2, "ali_keeper", "hashed_pw");
-            case "3" -> new Inspector(3, "alialialiinspector", "123456");
-            default -> null;
-        };
-
-        if (currentUser != null) {
-            System.out.println("\nخوش آمدی " + currentUser + "\n");
-            return true;
+        if (user != null) {
+            System.out.println(
+                    "Welcome " + user.getUsername());
+            return user;
         }
-        return false;
+        System.out.println("Username or Password is incorrect.");
+        return null;
     }
 
     private static void initialProductSeed() {
