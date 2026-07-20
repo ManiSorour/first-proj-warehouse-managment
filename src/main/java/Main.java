@@ -1,3 +1,4 @@
+import annotation.MenuCommand;
 import files.FileExporter;
 import files.ReportData;
 import files.ReportService;
@@ -12,8 +13,12 @@ import service.UserService;
 import service.WareHouseService;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 import static model.role.Role.*;
 
@@ -45,7 +50,7 @@ public class Main {
         alertService.startBackgroundMonitoring(wareHouseService, Long.valueOf(180_000));
 
         currentUser = login();
-        if (currentUser == null){
+        if (currentUser == null) {
             System.out.println("ورود ناموفق. برنامه بسته می‌شود.");
             return;
         }
@@ -54,34 +59,53 @@ public class Main {
     }
 
     public static void showMainMenu() {
-        boolean running = true;
-        while (running) {
 
-            printMenu();
-            String choice = scanner.nextLine().trim();
-            switch (choice) {
-                case "1" -> viewAllProducts();
-                case "2" -> addProduct();
-                case "3" -> sellProduct();
-                case "4" -> purchaseProduct();
-                case "5" -> viewLowStock();
-                case "6" -> viewTransactionHistory();
-                case "7" -> generateAndExportReport();
-                case "8" -> searchByCategory();
-                case "9" -> editProduct();
-                case "10" -> deleteProduct();
-                case "11" -> filterByPriceRange();
-                case "12" -> filterByStatus();
-                case "13" -> adminPanel();
+        List<Method> commands = Arrays.stream(Main.class.getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(MenuCommand.class))
+                .filter(m -> Main.isAllowedUser(m))
+                .collect(Collectors.toList());
 
-                case "0" -> {
-                    running = false;
-                    alertService.stopBackgroundMonitoring();
-                    System.out.println("خروج از برنامه. خدانگهدار!");
-                }
-                default -> System.out.println("گزینه نامعتبر است.\n");
+        boolean running = true ;
+
+        while(running){
+            System.out.println("---------------------------------");
+
+            for (int i = 0; i < commands.size(); i++) {
+                MenuCommand cmd = commands.get(i).getAnnotation(MenuCommand.class);
+                System.out.println((i + 1) + ") " + cmd.name());
+            }
+            System.out.println("0) خروج");
+            System.out.print("انتخاب شما: ");
+
+            String input = scanner.nextLine().trim();
+
+            if(input.equals(0)){
+                running = false;
+                alertService.stopBackgroundMonitoring();
+                System.out.println("خروج از برنامه. خدانگهدار!");
+            }
+
+            
+        }
+
+
+
+    }
+
+    private static boolean isAllowedUser(Method m) {
+
+        MenuCommand cmd = m.getAnnotation(MenuCommand.class);
+        Role[] userCapability = cmd.selectedRole();
+        if (userCapability.length == 0) {
+            return true;
+        }
+        for (Role r : userCapability) {
+            if (r == currentUser.getRole()) {
+                return true;
             }
         }
+        return false;
+
     }
 
 
@@ -189,7 +213,7 @@ public class Main {
         }
         System.out.println();
     }
-
+    @MenuCommand(name = "فیلتر بر اساس بازه‌ی قیمت", rowNumber = 11)
     private static void filterByPriceRange() {
 
         try {
@@ -206,7 +230,7 @@ public class Main {
             System.out.println("خطا: " + e.getMessage() + "\n");
         }
     }
-
+    @MenuCommand(name = "فیلتر بر اساس وضعیت", rowNumber = 12)
     private static void filterByStatus() {
         System.out.print("وضعیت مورد نظر (1: موجود / 2: ناموجود): ");
         String choice = scanner.nextLine().trim();
@@ -218,6 +242,7 @@ public class Main {
 
     }
 
+    @MenuCommand(name = "ویرایش کالا", rowNumber = 9, selectedRole = {Role.ADMIN, Role.WAREHOUSE_KEEPER})
 
     private static void editProduct() {
         if (!currentUser.canEditStock()) {
@@ -272,6 +297,7 @@ public class Main {
 
         }
     }
+    @MenuCommand(name = "حذف کالا", rowNumber = 10, selectedRole = {Role.ADMIN})
 
     private static void deleteProduct() {
         if (!currentUser.canEditStock()) {
@@ -299,6 +325,7 @@ public class Main {
 
     }
 
+    @MenuCommand(name = "جستجو بر اساس دسته‌بندی", rowNumber = 8)
 
     private static void searchByCategory() {
         List<String> categories = wareHouseService.getAllCategories();
@@ -332,26 +359,26 @@ public class Main {
     }
 
 
-    private static void printMenu() {
-        System.out.println("---------------------------------");
-        System.out.println("1) مشاهده لیست کالاها");
-        System.out.println("2) ثبت کالای جدید");
-        System.out.println("3) ثبت فروش کالا");
-        System.out.println("4) ثبت خرید (افزایش موجودی)");
-        System.out.println("5) مشاهده هشدار موجودی کم");
-        System.out.println("6) مشاهده تاریخچه تراکنش‌ها");
-        System.out.println("7) گزارش نهایی (ارزش انبار + پرفروش‌ها)");
-        System.out.println("8) جستجوی کالا بر اساس دسته‌بندی");
-        System.out.println("9) ویرایش کالا");
-        System.out.println("10) حذف کالا");
-        System.out.println("11) فیلتر بر اساس بازه‌ی قیمت");
-        System.out.println("12) فیلتر بر اساس وضعیت (موجود/ناموجود)");
-        if (currentUser.getRole() == ADMIN) {
-            System.out.println("13) پنل مدیریت کاربران (Admin)");
-        }
-        System.out.println("0) خروج");
-        System.out.print("انتخاب شما: ");
-    }
+//    private static void printMenu() {                                             //با وجود کلاس انوتیشن بهش دیگه نیازی نیست
+//        System.out.println("---------------------------------");
+//        System.out.println("1) مشاهده لیست کالاها");
+//        System.out.println("2) ثبت کالای جدید");
+//        System.out.println("3) ثبت فروش کالا");
+//        System.out.println("4) ثبت خرید (افزایش موجودی)");
+//        System.out.println("5) مشاهده هشدار موجودی کم");
+//        System.out.println("6) مشاهده تاریخچه تراکنش‌ها");
+//        System.out.println("7) گزارش نهایی (ارزش انبار + پرفروش‌ها)");
+//        System.out.println("8) جستجوی کالا بر اساس دسته‌بندی");
+//        System.out.println("9) ویرایش کالا");
+//        System.out.println("10) حذف کالا");
+//        System.out.println("11) فیلتر بر اساس بازه‌ی قیمت");
+//        System.out.println("12) فیلتر بر اساس وضعیت (موجود/ناموجود)");
+//        if (currentUser.getRole() == ADMIN) {
+//            System.out.println("13) پنل مدیریت کاربران (Admin)");
+//        }
+//        System.out.println("0) خروج");
+//        System.out.print("انتخاب شما: ");
+//    }
 
     private static ProductRepository ChooseRepository() {
 
@@ -384,7 +411,7 @@ public class Main {
     }
 
     private static User login() {
-        System.out.println(" اطلاعات کاربری خود را وارد کنید " );
+        System.out.println(" اطلاعات کاربری خود را وارد کنید ");
 
         System.out.println("username :");
         String username = scanner.nextLine().trim();
@@ -416,6 +443,7 @@ public class Main {
 
     }
 
+    @MenuCommand(name = "مشاهده لیست کالا ها", rowNumber = 1)
     private static void viewAllProducts() {
         List<Product> products = wareHouseService.getAllProducts();
         System.out.println("\n--- لیست کالاها ---");
@@ -433,6 +461,7 @@ public class Main {
         System.out.println();
     }
 
+    @MenuCommand(name = "ثبت کالای جدید", rowNumber = 2, selectedRole = {ADMIN, WAREHOUSE_KEEPER})
     private static void addProduct() {
         if (!currentUser.canEditStock()) {
             System.out.println("\n شما اجازه ثبت کالا را ندارید.\n");
@@ -458,6 +487,7 @@ public class Main {
 
     }
 
+    @MenuCommand(name = "ثبت فروش کالا", rowNumber = 3)
     private static void sellProduct() {
         System.out.print("شناسه (id) کالا برای فروش: ");
         String input = scanner.nextLine().trim();
@@ -491,7 +521,7 @@ public class Main {
         }
     }
 
-
+    @MenuCommand(name = "ثبت خرید (افزایش موجودی)", rowNumber = 4, selectedRole = {ADMIN, WAREHOUSE_KEEPER})
     private static void purchaseProduct() {
         if (!currentUser.canEditStock()) {
             System.out.println("\n شما اجازه ثبت خرید ندارید.\n");
@@ -518,6 +548,7 @@ public class Main {
         }
     }
 
+    @MenuCommand(name = "مشاهده هشدار موجودی کم", rowNumber = 5)
     private static void viewLowStock() {
 
         List<Product> lowStock = AlertService.checkLowStock(wareHouseService.getAllProducts());
@@ -531,6 +562,7 @@ public class Main {
         System.out.println();
     }
 
+    @MenuCommand(name = "مشاهده تاریخچه تراکنش ها", rowNumber = 6)
     private static void viewTransactionHistory() {
         if (!currentUser.canViewReports() && currentUser.getRole() != WAREHOUSE_KEEPER) {
             System.out.println("\n شما اجازه مشاهده تاریخچه را ندارید.\n");
@@ -546,6 +578,7 @@ public class Main {
         System.out.println();
     }
 
+    @MenuCommand(name = "گزارش نهایی (ارزش انبار + پرفروش ها)", rowNumber = 7, selectedRole = {ADMIN, INSPECTOR})
     private static void generateAndExportReport() {
         if (!currentUser.canViewReports()) {
             System.out.println("\n شما اجازه مشاهده گزارش‌ها را ندارید.\n");
