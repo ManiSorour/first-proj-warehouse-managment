@@ -13,6 +13,7 @@ import service.UserService;
 import service.WareHouseService;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,13 +62,13 @@ public class Main {
     public static void showMainMenu() {
 
         List<Method> commands = Arrays.stream(Main.class.getDeclaredMethods())
-                .filter(m -> m.isAnnotationPresent(MenuCommand.class))
-                .filter(m -> Main.isAllowedUser(m))
+                .filter(meth -> meth.isAnnotationPresent(MenuCommand.class))
+                .filter(meth -> Main.isAllowedUser(meth))
                 .collect(Collectors.toList());
 
-        boolean running = true ;
+        boolean running = true;
 
-        while(running){
+        while (running) {
             System.out.println("---------------------------------");
 
             for (int i = 0; i < commands.size(); i++) {
@@ -79,23 +80,39 @@ public class Main {
 
             String input = scanner.nextLine().trim();
 
-            if(input.equals(0)){
+            if (input.equals(0)) {
                 running = false;
                 alertService.stopBackgroundMonitoring();
                 System.out.println("خروج از برنامه. خدانگهدار!");
             }
 
-            
+
+            try {
+                Method selected = commands.get(Integer.parseInt(input) - 1);
+                selected.setAccessible(true);
+
+                System.out.println("LOG شروع اجرای: " + selected.getName());
+                long start = System.currentTimeMillis();
+                selected.invoke(null);
+                long timer = System.currentTimeMillis() - start ;
+                System.out.println("[LOG] پایان اجرای: " + selected.getName() + " (" + timer + " ms)");
+
+
+
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+
         }
-
-
 
     }
 
-    private static boolean isAllowedUser(Method m) {
+    private static boolean isAllowedUser(Method meth) {
 
-        MenuCommand cmd = m.getAnnotation(MenuCommand.class);
-        Role[] userCapability = cmd.selectedRole();
+        MenuCommand commd = meth.getAnnotation(MenuCommand.class);
+        Role[] userCapability = commd.selectedRole();
         if (userCapability.length == 0) {
             return true;
         }
@@ -213,6 +230,7 @@ public class Main {
         }
         System.out.println();
     }
+
     @MenuCommand(name = "فیلتر بر اساس بازه‌ی قیمت", rowNumber = 11)
     private static void filterByPriceRange() {
 
@@ -230,6 +248,7 @@ public class Main {
             System.out.println("خطا: " + e.getMessage() + "\n");
         }
     }
+
     @MenuCommand(name = "فیلتر بر اساس وضعیت", rowNumber = 12)
     private static void filterByStatus() {
         System.out.print("وضعیت مورد نظر (1: موجود / 2: ناموجود): ");
@@ -297,6 +316,7 @@ public class Main {
 
         }
     }
+
     @MenuCommand(name = "حذف کالا", rowNumber = 10, selectedRole = {Role.ADMIN})
 
     private static void deleteProduct() {
