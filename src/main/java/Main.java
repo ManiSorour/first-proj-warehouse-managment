@@ -13,6 +13,7 @@ import service.UserService;
 import service.WareHouseService;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -20,6 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 
 import static model.role.Role.*;
 
@@ -34,7 +37,9 @@ public class Main {
     private static final UserService userService = new UserService();
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnsupportedEncodingException {
+        System.setOut(new PrintStream(System.out, true, "UTF-8"));
+
         System.out.println("=== سیستم مدیریت انبار ===\n");
 
         ProductRepository repository = ChooseRepository();
@@ -91,12 +96,8 @@ public class Main {
                 Method selected = commands.get(Integer.parseInt(input) - 1);
                 selected.setAccessible(true);
 
-                System.out.println("LOG شروع اجرای: " + selected.getName());
-                long start = System.currentTimeMillis();
-                selected.invoke(null);
-                long timer = System.currentTimeMillis() - start ;
-                System.out.println("[LOG] پایان اجرای: " + selected.getName() + " (" + timer + " ms)");
 
+                selected.invoke(null);
 
 
             } catch (IllegalAccessException e) {
