@@ -69,6 +69,7 @@ public class Main {
         List<Method> commands = Arrays.stream(Main.class.getDeclaredMethods())
                 .filter(meth -> meth.isAnnotationPresent(MenuCommand.class))
                 .filter(meth -> Main.isAllowedUser(meth))
+                .sorted(java.util.Comparator.comparingInt(meth -> meth.getAnnotation(MenuCommand.class).rowNumber()))
                 .collect(Collectors.toList());
 
         boolean running = true;
@@ -85,15 +86,29 @@ public class Main {
 
             String input = scanner.nextLine().trim();
 
-            if (input.equals(0)) {
+            if (input.equals("0")) {
                 running = false;
                 alertService.stopBackgroundMonitoring();
                 System.out.println("خروج از برنامه. خدانگهدار!");
+                continue;
+            }
+
+            int falseinput;
+            try {
+                falseinput = Integer.parseInt(input) - 1;
+            } catch (NumberFormatException e) {
+                System.out.println("گزینه نامعتبر است.\n");
+                continue;
+            }
+
+            if (falseinput < 0 || falseinput >= commands.size()) {
+                System.out.println("گزینه نامعتبر است.\n");
+                continue;
             }
 
 
             try {
-                Method selected = commands.get(Integer.parseInt(input) - 1);
+                Method selected = commands.get(falseinput);
                 selected.setAccessible(true);
 
 
@@ -101,9 +116,12 @@ public class Main {
 
 
             } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException(e);
+                System.out.println("خطای دسترسی به متد: " + e.getMessage() + "\n");
+
+            } catch (Throwable e) {
+
+                System.out.println("عملیات با خطا مواجه شد.");
+                e.printStackTrace();
             }
 
         }

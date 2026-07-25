@@ -43,6 +43,24 @@ public class WareHouseService {
         productRepository.save(product);
     }
 
+    public void addProduct(String name, String code, String category,   // over load methode for java fx ( id ++ )
+                           double purchasePrice, double sellPrice,
+                           int quantity, int minStockLevel, User performedBy) {
+        if (!performedBy.canEditStock()) {
+            throw new SecurityException("this user can't add product");
+        }
+
+        int newId = productRepository.findAll().stream()
+                .mapToInt(Product::getId)
+                .max()
+                .orElse(0) + 1;
+
+        Product product = new Product(newId, name, code, category,
+                purchasePrice, sellPrice, quantity, minStockLevel);
+
+        productRepository.save(product);
+    }
+
     public Optional<Product> findProductByCode(String code) {
         return productRepository.findAll().stream()
                 .filter(p -> p.getCode().equalsIgnoreCase(code))
@@ -82,6 +100,8 @@ public class WareHouseService {
                         product.getQuantity(), product.getMinStockLevel()
                 );
                 productDao.update(conn, vasl);
+                transactionDao.save(conn, transaction);
+
 
                 conn.commit();
             } catch (SQLException e) {
@@ -104,7 +124,7 @@ public class WareHouseService {
         }
 
 
-        transactionDao.save(transaction);
+
         transactionJsonRepository.save(transaction);
     }
 
@@ -158,7 +178,7 @@ public class WareHouseService {
     //---- filter
     public List<Product> findProductsByPriceRange(double minPrice, double maxPrice) {
 
-        if (maxPrice > minPrice) {
+        if (maxPrice < minPrice) {
             System.out.println("حداقل قیمت نمی‌تواند از حداکثر قیمت بیشتر باشد");
         }
 
