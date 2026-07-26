@@ -6,6 +6,8 @@ import model.product.Product;
 import model.product.ProductStatus;
 import model.role.*;
 import model.transaction.Transaction;
+import network.WarehouseClient;
+import network.WarehouseServer;
 import repository.*;
 import service.AlertService;
 import service.AuthService;
@@ -29,12 +31,15 @@ import static model.role.Role.*;
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
     private static WareHouseService wareHouseService;
+    private static WarehouseServer warehouseServer;
     private static int nextProductId = 1;
     private static AlertService alertService = new AlertService();
     private static User currentUser;
     private static FileExporter fileExporter = new FileExporter();
 
     private static final UserService userService = new UserService();
+
+    private static final int SOCKET_PORT = 6000;
 
 
     public static void main(String[] args) throws UnsupportedEncodingException {
@@ -277,6 +282,27 @@ public class Main {
         List<Product> results = wareHouseService.findProductsByStatus(status);
         printProductList(results, "نتایج فیلتر وضعیت: " + status);
 
+    }
+
+    @MenuCommand(name = "start monitoring (socket)", rowNumber = 13, selectedRole = ADMIN)
+    private static void startServer() {
+        if (warehouseServer == null) {
+            warehouseServer = new WarehouseServer(wareHouseService);
+        }
+        warehouseServer.startServer(SOCKET_PORT);
+        System.out.println(" سرور روی پورت " + SOCKET_PORT + " فعال شد. از یک کلاینت با دستور LIST یا LOWSTOCK وصل شو.\n");
+
+    }
+
+    @MenuCommand(name = "تست کلاینت مانیتورینگ (اتصال به localhost)", rowNumber = 14)
+    private static void testMonitoring() {
+        System.out.print("دستور مورد نظر (LIST / LOWSTOCK): ");
+        String command = scanner.nextLine().trim();
+
+        String response = WarehouseClient.givenCommand("localhost", SOCKET_PORT, command);
+        System.out.println("\n--- پاسخ سرور ---");
+        System.out.println(response);
+        System.out.println();
 
     }
 
