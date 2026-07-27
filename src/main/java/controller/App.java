@@ -6,12 +6,13 @@ import javafx.stage.Stage;
 import model.role.Admin;
 import model.role.User;
 import repository.ProductInMemoryRepository;
+import repository.ProductJsonRepository;
 import service.WareHouseService;
 
 public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
-        WareHouseService wareHouseService = new WareHouseService(new ProductInMemoryRepository());
+        WareHouseService wareHouseService = new WareHouseService(new ProductJsonRepository("products.json"));
         User currentUser = new Admin(1 , "ali" , "8871");
 
         ProductForm form = new ProductForm(currentUser , wareHouseService);

@@ -1,10 +1,6 @@
 package controller;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableArray;
-import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
@@ -45,7 +41,7 @@ public class ProductForm extends BorderPane {
         dataHolder = new VBox(10);
 
 
-        initTable();
+        initializeTable();
         searchSetting();
         loadData();
         boolean canEdit = currentUser.canEditStock();
@@ -64,7 +60,7 @@ public class ProductForm extends BorderPane {
     }
 
 
-    private void initTable() {
+    private void initializeTable() {
         tableView = new TableView<>();
 
         TableColumn<Product, String> name = new TableColumn("product-name");
@@ -129,18 +125,6 @@ public class ProductForm extends BorderPane {
                 }
 
         );
-    }
-
-    private void buttonsSetting() {
-        boolean canEdit = currentUser.canEditStock();
-
-        addButton.setDisable(!canEdit);
-        editButton.setDisable(!canEdit);
-        deleteButton.setDisable(!canEdit);
-
-        addButton.setOnAction(event -> addBox());
-        editButton.setOnAction(event -> editBox());
-        deleteButton.setOnAction(event -> deleteBox());
     }
 
 

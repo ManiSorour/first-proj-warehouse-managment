@@ -16,8 +16,12 @@ public class WarehouseClient {
 
         out.println(command);
             String response = in.readLine();
-            return response != null ? response : "(پاسخی از سرور دریافت نشد)";
 
+            if (response != null) {
+                return response;
+            } else {
+                return "(پاسخی از سرور دریافت نشد)";
+            }
 
         } catch (IOException e) {
             return "خطا در اتصال به سرور: " + e.getMessage();
